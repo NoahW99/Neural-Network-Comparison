@@ -9,9 +9,9 @@ class NeuralNetwork:
       lr: learning rate
       epochs: number of training epochs
 
-    TODO Inspiration taken from https://medium.com/@waadlingaadil/learn-to-build-a-neural-network-from-scratch-yes-really-cac4ca457efc
+    Inspiration taken from https://medium.com/@waadlingaadil/learn-to-build-a-neural-network-from-scratch-yes-really-cac4ca457efc
     """
-    def __init__(self, layer_sizes, activations, lr=0.01, epochs=1000):
+    def __init__(self, layer_sizes, activations, lr=0.01, epochs=1000, class_weights=None):
         assert len(layer_sizes) >= 2, "Need at least input and output layer"
         assert len(activations) == len(layer_sizes) - 1, \
             "Must specify one activation per layer transition"
@@ -20,6 +20,7 @@ class NeuralNetwork:
         self.activations = activations
         self.lr = lr
         self.epochs = epochs
+        self.class_weights = class_weights
 
         # initialize weights and biases
         self.W = []
@@ -62,7 +63,16 @@ class NeuralNetwork:
         m = Y.shape[1]
         # avoid log(0)
         eps = 1e-8
-        cost = - np.sum(Y * np.log(A_L + eps) + (1-Y) * np.log(1 - A_L + eps)) / m
+        loss_matrix = -(Y * np.log(A_L + eps) + (1 - Y) * np.log(1 - A_L + eps))
+        cost = np.sum(loss_matrix) / m
+        if self.class_weights is None:
+            cost = np.sum(loss_matrix) / m
+        else: 
+            # get weights per sample
+            true_labels    = np.argmax(Y, axis=0)
+            sample_weights = np.vectorize(self.class_weights.get)(true_labels)
+            per_sample_loss = np.sum(loss_matrix, axis=0)
+            cost = np.sum(sample_weights * per_sample_loss) / m
         return cost
 
     def backprop(self, cache, Y):
@@ -78,6 +88,11 @@ class NeuralNetwork:
         # initialize dA from output layer
         A_L = cache[f'A{L}']
         dZ = (A_L - Y) / m
+        
+        if self.class_weights is not None:
+            true_labels = np.argmax(Y, axis=0)
+            sw = np.vectorize(self.class_weights.get)(true_labels)
+            dZ = dZ * sw[np.newaxis, :] 
 
         # backprop through layers L..1
         for i in reversed(range(L)):
