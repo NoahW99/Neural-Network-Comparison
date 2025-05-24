@@ -39,6 +39,9 @@ class NeuralNetwork:
         elif func == 'sigmoid':
             A = 1 / (1 + np.exp(-Z))
             dA = A * (1 - A)
+        elif func == 'tanh':
+            A = np.tanh(Z)
+            dA = 1 - A**2
         else:
             raise ValueError(f"Unsupported activation: {func}")
         return A, dA
