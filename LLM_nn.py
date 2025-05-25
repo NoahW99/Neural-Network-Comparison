@@ -11,6 +11,19 @@ class LLMNeuralNetwork:
             self.params[f'b{i}'] = np.zeros((1, dims[i]))
         self.activation = activation
 
+    def parameters(self):
+        """
+        Yield every learnable ndarray (weights and biases) so that
+        utilities like count_learnable_params() can iterate over them.
+        """
+        # Get the number of layers from params dictionary
+        n_layers = len([k for k in self.params.keys() if k.startswith('W')])
+
+        # Yield weights and biases in order
+        for i in range(1, n_layers + 1):
+            yield self.params[f'W{i}']
+            yield self.params[f'b{i}']
+
     def _activate(self, Z):
         if self.activation == 'sigmoid':
             return 1/(1+np.exp(-Z))
