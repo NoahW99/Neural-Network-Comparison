@@ -25,12 +25,24 @@ class NeuralNetwork:
         # initialize weights and biases
         self.W = []
         self.b = []
+
         for i in range(len(layer_sizes) - 1):
             in_dim = layer_sizes[i]
             out_dim = layer_sizes[i+1]
             limit = np.sqrt(6 / (in_dim + out_dim))
             self.W.append(np.random.uniform(-limit, limit, (out_dim, in_dim)))
             self.b.append(np.zeros((out_dim, 1)))
+
+
+    def parameters(self):
+        """
+        Yield every learnable ndarray (weights and biases) so that
+        utilities like count_learnable_params() can iterate over them.
+        """
+        for W, b in zip(self.W, self.b):
+            yield W
+            yield b
+
 
     def _activate(self, Z, func):
         if func == 'relu':
