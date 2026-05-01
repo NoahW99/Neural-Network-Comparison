@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import expit
 
 class NeuralNetwork:
     """
@@ -11,10 +12,15 @@ class NeuralNetwork:
 
     Inspiration taken from https://medium.com/@waadlingaadil/learn-to-build-a-neural-network-from-scratch-yes-really-cac4ca457efc
     """
-    def __init__(self, layer_sizes, activations, lr=0.01, epochs=1000, class_weights=None):
+    def __init__(self, layer_sizes, activations, lr=0.01, epochs=1000, class_weights=None, seed=None):
         assert len(layer_sizes) >= 2, "Need at least input and output layer"
         assert len(activations) == len(layer_sizes) - 1, \
             "Must specify one activation per layer transition"
+        assert activations[-1] == 'sigmoid', \
+            "Output activation must be 'sigmoid' (BCE backprop assumes it)"
+
+        if seed is not None:
+            np.random.seed(seed)
 
         self.layer_sizes = layer_sizes
         self.activations = activations
@@ -49,7 +55,7 @@ class NeuralNetwork:
             A = np.maximum(0, Z)
             dA = (Z > 0).astype(float)
         elif func == 'sigmoid':
-            A = 1 / (1 + np.exp(-Z))
+            A = expit(Z)
             dA = A * (1 - A)
         elif func == 'tanh':
             A = np.tanh(Z)
@@ -79,10 +85,9 @@ class NeuralNetwork:
         # avoid log(0)
         eps = 1e-8
         loss_matrix = -(Y * np.log(A_L + eps) + (1 - Y) * np.log(1 - A_L + eps))
-        cost = np.sum(loss_matrix) / m
         if self.class_weights is None:
             cost = np.sum(loss_matrix) / m
-        else: 
+        else:
             # get weights per sample
             true_labels    = np.argmax(Y, axis=0)
             sample_weights = np.vectorize(self.class_weights.get)(true_labels)

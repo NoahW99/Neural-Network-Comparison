@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor backups
+*~
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project data (keep small example, ignore large dumps)
+184-702-tu-ml-2025-s-breast-cancer-diagnostic/

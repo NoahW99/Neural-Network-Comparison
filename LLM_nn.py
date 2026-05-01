@@ -1,13 +1,18 @@
 import numpy as np
+from scipy.special import expit
 
 class LLMNeuralNetwork:
-    def __init__(self, dims, activation='sigmoid', lr=0.01, class_weights=None):
+    def __init__(self, dims, activation='sigmoid', lr=0.01, class_weights=None, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
         self.dims = dims
         self.lr = lr
         self.class_weights = class_weights
         self.params = {}
         for i in range(1, len(dims)):
-            self.params[f'W{i}'] = np.random.randn(dims[i-1], dims[i]) * 0.01
+            # He init for relu, Xavier-like otherwise
+            scale = np.sqrt(2.0 / dims[i-1]) if activation == 'relu' else np.sqrt(1.0 / dims[i-1])
+            self.params[f'W{i}'] = np.random.randn(dims[i-1], dims[i]) * scale
             self.params[f'b{i}'] = np.zeros((1, dims[i]))
         self.activation = activation
 
@@ -26,7 +31,7 @@ class LLMNeuralNetwork:
 
     def _activate(self, Z):
         if self.activation == 'sigmoid':
-            return 1/(1+np.exp(-Z))
+            return expit(Z)
         return np.maximum(0, Z)
 
     def forward(self, X):
